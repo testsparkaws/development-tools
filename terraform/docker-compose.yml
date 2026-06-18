@@ -5,22 +5,23 @@ services:
     container_name: terraform_lab
     working_dir: /workspace
     volumes:
-      - ./:/workspace
-      - terraform_plugin_cache:/plugin-cache
+      - ./:/workspace                          # your entire terraform-learn folder
+      - terraform_plugin_cache:/plugin-cache   # shared provider cache (avoid re-downloading)
     environment:
       - TF_PLUGIN_CACHE_DIR=/plugin-cache
-      - TF_LOG=${TF_LOG:-}
-    entrypoint: ["tail", "-f", "/dev/null"]
+      - TF_LOG=${TF_LOG:-}                     # set to DEBUG/INFO/WARN/ERROR/TRACE if needed
+    entrypoint: ["tail", "-f", "/dev/null"]    # keeps container alive so you can exec into it
     networks:
       - tfnet
-
+      
+  # LocalStack — fake AWS for Module 8+ (S3, EC2, IAM, VPC with no real AWS cost)
   localstack:
     image: localstack/localstack:latest
     container_name: localstack
     ports:
       - "4566:4566"
     environment:
-      - SERVICES=s3,ec2,iam,sts,lambda,dynamodb
+      - SERVICES=s3,ec2,iam,sts,lambda,dynamodb,vpc
       - DEBUG=0
       - DEFAULT_REGION=us-east-1
     volumes:
@@ -29,7 +30,7 @@ services:
     networks:
       - tfnet
     profiles:
-      - aws
+      - aws   # only starts when you run: docker compose --profile aws up
 
 volumes:
   terraform_plugin_cache:
