@@ -1,0 +1,40 @@
+services:
+
+  terraform:
+    image: hashicorp/terraform:latest
+    container_name: terraform_lab
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+      - terraform_plugin_cache:/plugin-cache
+    environment:
+      - TF_PLUGIN_CACHE_DIR=/plugin-cache
+      - TF_LOG=${TF_LOG:-}
+    entrypoint: ["tail", "-f", "/dev/null"]
+    networks:
+      - tfnet
+
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3,ec2,iam,sts,lambda,dynamodb
+      - DEBUG=0
+      - DEFAULT_REGION=us-east-1
+    volumes:
+      - localstack_data:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - tfnet
+    profiles:
+      - aws
+
+volumes:
+  terraform_plugin_cache:
+  localstack_data:
+
+networks:
+  tfnet:
+    driver: bridge
